@@ -4,6 +4,9 @@ $(document).ready(function(){
 
 const ref = db.ref("Fornecedores");
 
+let idcapturado = null;
+$("#cancelar").hide();
+
 $("#salvar").click(function (){
     let nome = $("#nome").val();
     let cnpj = $("#CNPJ").val();
@@ -15,7 +18,18 @@ $("#salvar").click(function (){
         return;
     }
 
-    ref.push({nome , email, cnpj, estado});
+    if (idcapturado) {//editar
+        ref.child(idcapturado).update({ nome, email, cnpj, estado });
+        idcapturado = null;
+        $("#salvar").text("Salvar");
+
+        $("#cancelar").hide();
+        $("#salvar").removeClass("btn-success").addClass("btn-primary");
+        $("#status"). text("");
+    } else {//salvar
+        ref.push({ nome, email, cnpj, estado});
+    }
+
     limpar();
 });
 
@@ -45,12 +59,12 @@ ref.on("value", dados_tabela => {
                 <td>${reg.email}</td>
                 <td>${reg.estado}</td>
                 <td>
-                    <button class="btn btn-danger btn-sm">
+                    <button class="btn btn-outline-danger btn-sm">
                         <i class="bi bi-trash"></i>
                     </button>
                 </td>
                 <td>
-                    <button class="btn btn-warning btn-sm">
+                    <button class="btn btn-outline-warning btn-sm" onclick="editar('${id}','${reg.nome}','${reg.cnpj}','${reg.email}','${reg.estado}')">
                         <i class="bi bi-pencil"></i>
                     </button>
                 </td>
@@ -67,3 +81,21 @@ function limpar(){
     $("#nome").focus();
     alert('Fornecedor cadastrado com sucesso!');
 };
+
+function editar(id, nome, cnpj, email, estado) {
+    $("#nome").val(nome);
+    $("#CNPJ").val(cnpj);
+    $("#email").val(email);
+    $("input[name='estado']:checked").val(estado);
+
+    idcapturado = id;
+
+    $("#cancelar").show();
+
+    $("#salvar")
+        .text("Atualizar")
+        .removeClass("btn-primary")
+        .addClass("btn-success");
+
+    $("#status"). text("Editando registro...");
+}
